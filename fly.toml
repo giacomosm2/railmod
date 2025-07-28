@@ -1,0 +1,19 @@
+app = "railmod"
+primary_region = "sjc"
+
+[build]
+  dockerfile = "deploy/Dockerfile"
+
+[mounts]
+  source = "redisdata"
+  destination = "/data"
+
+[experimental]
+  auto_rollback = true
+
+[defaults]
+  region = "sjc"
+
+[machines]
+  memory = 1024
+  cpus = 1

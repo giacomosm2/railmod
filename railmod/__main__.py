@@ -2,9 +2,12 @@ import discord
 import os
 from discord.ext import commands
 import redis.asyncio as redis
-from dotenv import load_dotenv
 
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ModuleNotFoundError:
+    pass
 token = os.environ.get("RAILMOD_TOKEN")
 
 intents = discord.Intents.default()

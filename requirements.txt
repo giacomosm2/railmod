@@ -1,0 +1,4 @@
+supervisor
+discord.py
+redis
+python-dateutil
