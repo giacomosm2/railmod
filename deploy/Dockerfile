@@ -1,7 +1,6 @@
 FROM python:3.11-slim
 
 RUN apt-get update && apt-get install -y \
-    redis-server \
     build-essential \
     libffi-dev \
     libssl-dev \
@@ -12,4 +11,4 @@ COPY . /railmod
 
 RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
-CMD sh -c "redis-server & sleep 1 && python3 -m railmod"
+CMD ["python3", "-m", "railmod"]

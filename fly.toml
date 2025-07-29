@@ -13,7 +13,3 @@ primary_region = "sjc"
 
 [defaults]
   region = "sjc"
-
-[machines]
-  memory = 1024
-  cpus = 1
