@@ -221,6 +221,81 @@ async def addpoints(ctx, user: discord.Member = None, amount: int = None):
     pn = pn_raw.decode() if pn_raw else "points"
     await ctx.send(f"{user.mention} got `{amount}` {pn}, yay! they now have `{int(await r.zscore(key, str(user.id)))}` {pn} in this server")
 
+@bot.command(help="ban a user | ban @user [reason]")
+async def ban(ctx, user: discord.Member = None, *, reason: str = "no reason provided"):
+    if not await is_admin(ctx):
+        try:
+            await ctx.author.send(f"railmod here! you tried to use an admin-level command in **\"{ctx.guild.name}\"**, but you are not an admin there. if you think this is a mistake contact the server owners :)\n`{ctx.message.content}`")
+        except discord.Forbidden:
+            pass
+        await ctx.message.delete()
+        return
+    if not user:
+        prefix = await get_current_prefix()
+        return await ctx.send(f"please specify a user to ban, for example `{prefix}ban @someuser [reason]`")
+    try:
+        await user.ban(reason=reason)
+        key = f"banned:{ctx.guild.id}:{user.id}"
+        await r.set(key, "1")
+        await ctx.send(f"{user.mention} has been banned for: *\"{reason}\"*")
+    except discord.Forbidden:
+        await ctx.send(f"failed to ban {user.mention} {shrug}")
+
+@bot.command(help="unban a user | unban user_id")
+async def unban(ctx, user_id: int = None):
+    if not await is_admin(ctx):
+        try:
+            await ctx.author.send(f"railmod here! you tried to use an admin-level command in **\"{ctx.guild.name}\"**, but you are not an admin there. if you think this is a mistake contact the server owners :)\n`{ctx.message.content}`")
+        except discord.Forbidden:
+            pass
+        await ctx.message.delete()
+        return
+    if not user_id:
+        prefix = await get_current_prefix()
+        return await ctx.send(f"please specify a user ID to unban, for example `{prefix}unban 1234567890`")
+    banned_users = await ctx.guild.bans()
+    user = next((b.user for b in banned_users if b.user.id == user_id), None)
+    if user is None:
+        return await ctx.send("user is not banned or ID invalid")
+    try:
+        await ctx.guild.unban(user)
+        key = f"banned:{ctx.guild.id}:{user.id}"
+        await r.delete(key)
+        await ctx.send(f"{user} has been unbanned")
+    except discord.Forbidden:
+        await ctx.send(f"failed to unban user {shrug}")
+
+# @bot.command(help="list banned users in the server | bannedlist")
+# async def bannedlist(ctx):
+#     if not await is_admin(ctx):
+#         try:
+#             await ctx.author.send(f"railmod here! you tried to use an admin-level command in **\"{ctx.guild.name}\"**, but you are not an admin there. if you think this is a mistake contact the server owners :)\n`{ctx.message.content}`")
+#         except discord.Forbidden:
+#             pass
+#         await ctx.message.delete()
+#         return
+    
+#     banned_users = await ctx.guild.bans()
+#     if not banned_users:
+#         return await ctx.send("no users are banned in this server, hooray!")
+    
+#     lines = []
+#     for ban_entry in banned_users:
+#         user = ban_entry.user
+#         reason = ban_entry.reason or "[no reason provided]"
+#         lines.append(f"- {user} (ID: {user.id}) — Reason: {reason}")
+    
+#     # chunk if needed
+#     chunk_size = 1900
+#     message = "Banned users:\n" + "\n".join(lines)
+#     if len(message) <= 2000:
+#         await ctx.send(message)
+#     else:
+#         # make sure its not two long
+#         for i in range(0, len(lines), 50):
+#             chunk = lines[i:i+50]
+#             await ctx.send("Banned users:\n" + "\n".join(chunk))
+
 @bot.command(help="pings the bot, nothing else | ping")
 async def ping(ctx):
     await ctx.send("pong!")
@@ -251,6 +326,7 @@ async def memberinfo(ctx, *, member: discord.Member = None):
         warning_str = "no warnings, yay!"
     else:
         warning_str = "\n".join(f"- {w}" for w in decoded[-10:])
+    
     embed = discord.Embed( # nice embed output
         title=f"member info | {member.display_name}",
         description=f"full username: `{member}`",
